@@ -6,14 +6,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 
-public class LineShape implements Shape {
+public class LineShape extends Line implements Shape {
     private Line line;
     Line borderEdge;
     Circle c1;
     Circle c2;
     public LineShape(double x1, double y1, double x2, double y2)
     {
-        line = new Line(x1, y1, x2, y2);
+        this.setStartX(x1);
+        this.setStartY(y1);
+        this.setEndX(x2);
+        this.setEndY(y2);
+        line = this;
         line.setStroke(Color.WHITE);
 
         addEdgeDetection();

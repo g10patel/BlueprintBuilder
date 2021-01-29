@@ -44,6 +44,7 @@ public class CurveTool {
                     //First Click
                     case(0):
                         currShape = new CurveShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
+                        Launcher.getBlueprint().setCurrShape(currShape);
                         clickIndex = 1;
                         break;
                     //Control Click

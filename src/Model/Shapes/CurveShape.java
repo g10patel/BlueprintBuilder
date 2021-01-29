@@ -7,18 +7,29 @@ import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.QuadCurve;
 
-public class CurveShape implements Shape{
+///Add c2 after curve is done
+
+public class CurveShape extends QuadCurve implements Shape{
     private QuadCurve curve;
     private QuadCurve curveBorder;
     private Circle c1;
     private Circle c2;
     public CurveShape(double x1, double y1, double c1, double c2, double x2, double y2)
     {
-        curve = new QuadCurve(x1, y1, c1, c2, x2, y2);
-        curve.setFill(Color.TRANSPARENT);
-        curve.setStroke(Color.WHITE);
+        this.setStartX(x1);
+        this.setStartY(y1);
+        this.setControlX(c1);
+        this.setControlY(c2);
+        this.setEndX(x2);
+        this.setEndY(y2);
+
+        this.setFill(Color.TRANSPARENT);
+        this.setStroke(Color.WHITE);
+
+        curve = this;
         Launcher.getBlueprint().addShape(curve);
         addEdgeDetection();
     }
@@ -53,10 +64,14 @@ public class CurveShape implements Shape{
         EventHandler<MouseEvent> enterEdge = new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-
-                updateCurve(mouseEvent.getX(), mouseEvent.getY());
-                System.out.println(mouseEvent.getSource());
-                updateEdgeDetection();
+                if(mouseEvent.getSource() != c2) {
+                    System.out.println(curve);
+                    System.out.println(Launcher.getBlueprint().getCurrShape());
+                    Shape shape = (Shape) Launcher.getBlueprint().getCurrShape();
+                    shape.setEndCoord(3, 3);
+                    updateCurve(mouseEvent.getX(), mouseEvent.getY());
+                    updateEdgeDetection();
+                }
             }
         };
         c1.addEventHandler(MouseEvent.MOUSE_ENTERED_TARGET, enterEdge);
@@ -97,5 +112,7 @@ public class CurveShape implements Shape{
 
     @Override
     public void setEndCoord(double x2, double y2) {
+        System.out.println("test");
+        System.out.println("this");
     }
 }

@@ -41,7 +41,7 @@ public class LineTool extends Line {
            }
            else
            {
-               currLine.updateLine(currLine.getLine().getStartX(), currLine.getLine().getStartY(), mouseEvent.getX(), mouseEvent.getY());
+               currLine.updateLine(currLine.getStartX(), currLine.getStartY(), mouseEvent.getX(), mouseEvent.getY());
                currLine = new LineShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
                currLine.addToBlueprint();
 
@@ -80,9 +80,11 @@ public class LineTool extends Line {
     private void addMouseFollowEventHandler()
     {
         EventHandler<MouseEvent> mouseMoved = mouseEvent -> {
-            if(currLine != null) {
+            if(currLine != null && mouseEvent.getX() > 1 && mouseEvent.getY() > 1) {
                 currLine.updateLine(mouseEvent.getX(), mouseEvent.getY());
-                DimensionTool.updateDimension(currLine.getLine().getStartX(), currLine.getLine().getStartY(), currLine.getLine().getEndX(), currLine.getLine().getEndY());
+                DimensionTool.updateDimension(currLine.getStartX(), currLine.getStartY(), currLine.getEndX(), currLine.getEndY());
+                System.out.println(mouseEvent.getX());
+                System.out.println(mouseEvent.getY());
             }
         };
         Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_MOVED, mouseMoved);
