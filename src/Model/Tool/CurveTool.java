@@ -1,21 +1,47 @@
 package Model.Tool;
 
 import Launcher.Launcher;
+import Model.Blueprint.Blueprint;
 import Model.Shapes.CurveShape;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.robot.Robot;
+import javafx.scene.layout.StackPane;
 
-public class CurveTool {
-    private int[] click = {0,1,2};
+public class CurveTool implements Tool{
     private int clickIndex;
     private CurveShape currShape;
+    private EventHandler<MouseEvent> followEvent;
+    private EventHandler<MouseEvent> clickEvent;
+    private EventHandler<MouseEvent> dragEvent;
+    private EventHandler<KeyEvent> escapeEvent;
+    private static CurveShape firstShape;
+    private boolean atEdge;
     public CurveTool()
     {
         initialize();
         clickIndex = 0;
+        firstShape = null;
+        atEdge = false;
+    }
+
+    public static CurveShape getFirstShape() {
+        return firstShape;
+    }
+    public void setAtEdge(boolean x)
+    {
+        atEdge = x;
+    }
+
+    @Override
+    public void delete() {
+        DimensionTool.removeTempDimension();
+        currShape.remove();
+        removeEventHandlers();
+        Launcher.getBlueprint().setCurrTool(null);
     }
 
     private void initialize()
@@ -33,34 +59,55 @@ public class CurveTool {
 
     private void addEscapeEventHandler()
     {
-
+        escapeEvent = keyEvent -> {
+            if(keyEvent.getCode() == KeyCode.ESCAPE)
+            {
+              delete();
+            }
+        };
+        Launcher.getStackPane().addEventHandler(KeyEvent.KEY_PRESSED, escapeEvent);
     }
+
+    private void removeEventHandlers()
+    {
+        StackPane stackPane = Launcher.getStackPane();
+        stackPane.removeEventHandler(MouseEvent.MOUSE_CLICKED, clickEvent);
+        stackPane.removeEventHandler(MouseEvent.MOUSE_MOVED, followEvent);
+        stackPane.removeEventHandler(MouseEvent.MOUSE_DRAGGED, dragEvent);
+        stackPane.removeEventHandler(KeyEvent.KEY_PRESSED, escapeEvent);
+    }
+
     private void addClickEventHandler()
     {
-        EventHandler<MouseEvent> clickEvent = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                switch(clickIndex){
-                    //First Click
-                    case(0):
-                        currShape = new CurveShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
-                        Launcher.getBlueprint().setCurrShape(currShape);
-                        clickIndex = 1;
-                        break;
-                    //Control Click
-                    case(1):
-                        currShape.setControl(mouseEvent.getX(), mouseEvent.getY());
-                        clickIndex = 2;
-                        break;
-                    //Final Click trigger another mouse click to add new curve
-                    default:
-                        currShape.updateCurve(mouseEvent.getX(), mouseEvent.getY());
-                        clickIndex = 0;
-                        Event.fireEvent(Launcher.getBlueprint(), new MouseEvent(MouseEvent.MOUSE_CLICKED, mouseEvent.getSceneX(),
-                                mouseEvent.getSceneY(), 0, 0, MouseButton.PRIMARY, 1, true, true, true, true,
-                                true, true, true, true, true, true, null));
-                        break;
-
+        clickEvent = mouseEvent -> {
+            //First Click
+            //Control Click
+            //Final Click trigger another mouse click to add new curve
+            switch (clickIndex) {
+                case (0) -> {
+                    currShape = new CurveShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
+                    Blueprint.setCurrShape(currShape);
+                    if (firstShape == null) {
+                        firstShape = currShape;
+                    }
+                    clickIndex = 1;
+                    DimensionTool.showDimensions(currShape.getStartX(), currShape.getStartY(), currShape.getEndX(), currShape.getEndY());
+                }
+                case (1) -> {
+                    currShape.setControl(mouseEvent.getX(), mouseEvent.getY());
+                    clickIndex = 2;
+                }
+                default -> {
+                    if(!atEdge)
+                    {
+                        currShape.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
+                    }
+                    clickIndex = 0;
+                    currShape.addBorderEdge();
+                    DimensionTool.removeTempDimension();
+                    Event.fireEvent(Launcher.getBlueprint(), new MouseEvent(MouseEvent.MOUSE_CLICKED, mouseEvent.getSceneX(),
+                            mouseEvent.getSceneY(), 0, 0, MouseButton.PRIMARY, 1, true, true, true, true,
+                            true, true, true, true, true, true, null));
                 }
             }
         };
@@ -69,30 +116,35 @@ public class CurveTool {
     }
     private void addDragEventHandler()
     {
-        EventHandler<MouseEvent> dragEvent = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                if(currShape != null) {
-                    currShape.updateCurve(mouseEvent.getX(), mouseEvent.getY());
-                }
+        dragEvent = mouseEvent -> {
+            if(currShape != null) {
+                currShape.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
+                DimensionTool.updateDimension(currShape.getStartX(), currShape.getStartY(), currShape.getEndX(), currShape.getEndY());
             }
         };
         Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_DRAGGED, dragEvent);
     }
     private void addMouseFollowEventHandler()
     {
-        EventHandler<MouseEvent> followEvent = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                if(currShape != null) {
-                    currShape.updateCurve(mouseEvent.getX(), mouseEvent.getY());
-                }
+        followEvent = mouseEvent -> {
+            if(currShape != null) {
+                currShape.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
+                DimensionTool.updateDimension(currShape.getStartX(), currShape.getStartY(), currShape.getEndX(), currShape.getEndY());
+
             }
         };
         Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_MOVED, followEvent);
     }
 
+    @Override
+    public void addFollowEvent() {
+        addMouseFollowEventHandler();
+    }
 
+    public void removeFollowEvent()
+    {
+       Launcher.getStackPane().removeEventHandler(MouseEvent.MOUSE_MOVED, followEvent);
+    }
 
 
 

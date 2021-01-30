@@ -1,17 +1,23 @@
 package Model;
 
 import Model.Blueprint.Blueprint;
+import Model.Tool.BezierTool;
 import Model.Tool.CurveTool;
 import Model.Tool.LineTool;
+import Model.Tool.Tool;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
 public class ToolBar extends GridPane {
-    private static Object currTool = null;
+    private static Tool currTool = null;
     public ToolBar(){
         initialize(this);
         setupIcons(this);
+    }
+
+    public static Tool getCurrTool() {
+        return currTool;
     }
 
     private void initialize(ToolBar toolBar)
@@ -26,14 +32,29 @@ public class ToolBar extends GridPane {
     private void setupIcons(GridPane x)
     {
         Button line = Helper.pathToButton("resources/LineTool.png");
-        line.setOnAction(actionEvent -> currTool = new LineTool());
+        line.setOnAction(actionEvent -> {
+                if(currTool!= null) {
+                    currTool.delete();
+                }
+                currTool = new LineTool();});
         x.add(line, 0,0,1,1);
         Button curve = Helper.pathToButton("resources/arc.png");
-        curve.setOnAction(actionEvent -> currTool = new CurveTool());
+        curve.setOnAction(actionEvent -> {
+            if(currTool != null) {
+                currTool.delete();
+            }
+                currTool = new CurveTool();});
         x.add(curve, 0,1,1,1);
         Button scissor = Helper.pathToButton("resources/scissor.png");
         x.add(scissor,0,2,1,1);
         Button bezier = Helper.pathToButton("resources/bezier.png");
+        bezier.setOnAction(actionEvent -> {
+            if(currTool != null)
+            {
+                currTool.delete();
+            }
+            currTool = new BezierTool();
+        });
         x.add(bezier, 0,3,1,1);
         Button door = Helper.pathToButton("resources/door.png");
         x.add(door, 0,4,1,1);

@@ -3,20 +3,21 @@ package Model.Shapes;
 
 import Launcher.Launcher;
 import Model.Blueprint.Blueprint;
+import Model.Tool.CurveTool;
+import Model.Tool.Tool;
+import Model.ToolBar;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.QuadCurve;
 
 ///Add c2 after curve is done
 
 public class CurveShape extends QuadCurve implements Shape{
-    private QuadCurve curve;
+    private final QuadCurve curve;
     private QuadCurve curveBorder;
     private Circle c1;
-    private Circle c2;
     public CurveShape(double x1, double y1, double c1, double c2, double x2, double y2)
     {
         this.setStartX(x1);
@@ -25,7 +26,6 @@ public class CurveShape extends QuadCurve implements Shape{
         this.setControlY(c2);
         this.setEndX(x2);
         this.setEndY(y2);
-
         this.setFill(Color.TRANSPARENT);
         this.setStroke(Color.WHITE);
 
@@ -39,14 +39,13 @@ public class CurveShape extends QuadCurve implements Shape{
         double scale = Blueprint.getScale();
 
         c1 = new Circle(15*scale);
-        c2 = new Circle(15*scale);
+
 
         c1.setCenterX(curve.getStartX());
         c1.setCenterY(curve.getStartY());
         c1.setFill(Color.TRANSPARENT);
-        c2.setCenterX(curve.getEndX());
-        c2.setCenterY(curve.getEndY());
-        c2.setFill(Color.TRANSPARENT);
+        c1.setStroke(Color.TRANSPARENT);
+
 
         curveBorder = new QuadCurve(curve.getStartX(), curve.getStartY(), curve.getControlX(), curve.getControlY(), curve.getEndX(), curve.getEndY());
         curveBorder.setStroke(Color.TRANSPARENT);
@@ -55,30 +54,36 @@ public class CurveShape extends QuadCurve implements Shape{
 
         Blueprint blueprint = Launcher.getBlueprint();
         blueprint.addShape(c1);
-        blueprint.addShape(c2);
-        blueprint.addShape(curveBorder);
+
         addEdgeDetectionEventHandlers();
     }
 
     private void addEdgeDetectionEventHandlers() {
-        EventHandler<MouseEvent> enterEdge = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                if(mouseEvent.getSource() != c2) {
-                    System.out.println(curve);
-                    System.out.println(Launcher.getBlueprint().getCurrShape());
-                    Shape shape = (Shape) Launcher.getBlueprint().getCurrShape();
-                    shape.setEndCoord(3, 3);
-                    updateCurve(mouseEvent.getX(), mouseEvent.getY());
-                    updateEdgeDetection();
-                }
-            }
+        EventHandler<MouseEvent> enterEdge = mouseEvent -> {
+                Launcher.getBlueprint().requestFocus();
+                Tool tool = ToolBar.getCurrTool();
+                tool.removeFollowEvent();
+                Shape shape = (Shape) Launcher.getBlueprint().getCurrShape();
+                Circle source = (Circle)mouseEvent.getSource();
+                source.setStroke(Color.GREEN);
+                shape.setEndCoord(source.getCenterX(), source.getCenterY());
+                tool.setAtEdge(true);
+
+
         };
-        c1.addEventHandler(MouseEvent.MOUSE_ENTERED_TARGET, enterEdge);
-        c2.addEventHandler(MouseEvent.MOUSE_ENTERED_TARGET, enterEdge);
+        EventHandler<MouseEvent> exitEdge = mouseEvent -> {
+            Launcher.getBlueprint().requestFocus();
+            Tool tool = ToolBar.getCurrTool();
+            tool.addFollowEvent();
+            ((Circle) mouseEvent.getSource()).setStroke(Color.TRANSPARENT);
+            tool.setAtEdge(false);
+
+        };
+        c1.setOnMouseEntered(enterEdge);
+        c1.setOnMouseExited(exitEdge);
     }
 
-    public void updateCurve(double x1, double y1, double c1, double c2, double x2, double y2)
+    public void updateShape(double x1, double y1, double c1, double c2, double x2, double y2)
     {
         curve.setStartX(x1);
         curve.setStartY(y1);
@@ -86,33 +91,45 @@ public class CurveShape extends QuadCurve implements Shape{
         curve.setControlY(c2);
         curve.setEndX(x2);
         curve.setEndY(y2);
+        updateEdgeDetection();
     }
-    public void updateCurve(double x2, double y2)
-    {
-       curve.setEndX(x2);
-       curve.setEndY(y2);
 
-       updateEdgeDetection();
-    }
     public void setControl(double c1, double c2)
     {
         curve.setControlX(c1);
         curve.setControlY(c2);
+        updateEdgeDetection();
     }
     private void updateEdgeDetection()
     {
-        c2.setCenterX(curve.getEndX());
-        c2.setCenterY(curve.getEndY());
+
         curveBorder.setControlX(curve.getControlX());
         curveBorder.setControlY(curve.getControlY());
         curveBorder.setEndX(curve.getEndX());
         curveBorder.setEndY(curve.getEndY());
+
     }
 
 
     @Override
     public void setEndCoord(double x2, double y2) {
-        System.out.println("test");
-        System.out.println("this");
+
+        this.setEndX(x2);
+        this.setEndY(y2);
+        updateEdgeDetection();
+    }
+
+    public void addBorderEdge() {
+        Launcher.getBlueprint().addShape(curveBorder);
+    }
+
+    @Override
+    public void remove() {
+        Launcher.getBlueprint().removeShape(curve);
+        Launcher.getBlueprint().removeShape(curveBorder);
+        if(this == CurveTool.getFirstShape())
+        {
+            Launcher.getBlueprint().removeShape(c1);
+        }
     }
 }

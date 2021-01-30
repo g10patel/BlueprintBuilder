@@ -3,14 +3,13 @@ package Model.Blueprint;
 import Launcher.Launcher;
 import Model.Blueprint.Grid.Grid;
 import Model.Layer;
-import javafx.event.EventHandler;
+import Model.Tool.Tool;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.ImageCursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 
@@ -19,11 +18,21 @@ import java.util.HashSet;
 public class Blueprint extends Pane {
 
     private static double scale;
-    private HashSet<Layer> layers = new HashSet<Layer>();
+    private final HashSet<Layer> layers = new HashSet<>();
     private Layer currLayer;
     private Scene scene;
     private static Node currShape;
     private Grid grid;
+
+    public Tool getCurrTool() {
+        return currTool;
+    }
+
+    public void setCurrTool(Tool currTool) {
+        this.currTool = currTool;
+    }
+
+    private Tool currTool;
     public Blueprint()
     {
         initialize();
@@ -97,17 +106,14 @@ public class Blueprint extends Pane {
 
     private void addGridScrollEventHandler()
     {
-        Launcher.getStackPane().setOnScroll(new EventHandler<ScrollEvent>() {
-            @Override
-            public void handle(ScrollEvent scrollEvent) {
-                double deltaY = scrollEvent.getDeltaY();
-                if(deltaY > 0)
-                {
-                    Grid.zoomOut();
-                }
-                else {
-                    Grid.zoomIn();
-                }
+        Launcher.getStackPane().setOnScroll(scrollEvent -> {
+            double deltaY = scrollEvent.getDeltaY();
+            if(deltaY > 0)
+            {
+                Grid.zoomOut();
+            }
+            else {
+                Grid.zoomIn();
             }
         });
     }

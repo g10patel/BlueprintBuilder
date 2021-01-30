@@ -1,21 +1,28 @@
 package Model.Tool;
 
 import Launcher.Launcher;
+import Model.Blueprint.Blueprint;
 import Model.Shapes.LineShape;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Line;
 
-public class LineTool extends Line {
+import java.util.Stack;
+
+public class LineTool implements Tool{
     private boolean firstClick;
     private LineShape currLine;
     private EventHandler<MouseEvent> clickEvent;
     private EventHandler<MouseEvent> dragEvent;
     private EventHandler<MouseEvent> followEvent;
     private EventHandler<KeyEvent> escapeEvent;
+    private static LineShape firstShape;
+    private boolean atEdge;
     public LineTool()
     {
         initialize();
@@ -27,23 +34,37 @@ public class LineTool extends Line {
         addClickEventHandler();
         addDragEventHandler();
         addMouseFollowEventHandler();
+        atEdge = false;
+        firstShape = null;
+        firstClick = true;
     }
 
     private void addClickEventHandler()
     {
         EventHandler<MouseEvent> mouseClicked = mouseEvent -> {
-           if(!firstClick)
+           if(firstClick)
            {
+
                currLine = new LineShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
                currLine.addToBlueprint();
+               if(firstShape == null)
+               {
+                   firstShape = currLine;
+               }
+               Blueprint.setCurrShape(currLine);
                DimensionTool.showDimensions(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
-               firstClick = true;
+               firstClick = false;
            }
            else
            {
-               currLine.updateLine(currLine.getStartX(), currLine.getStartY(), mouseEvent.getX(), mouseEvent.getY());
-               currLine = new LineShape(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getX(), mouseEvent.getY());
-               currLine.addToBlueprint();
+               if(!atEdge) {
+                   currLine.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
+               }
+               firstClick = true;
+               DimensionTool.removeTempDimension();
+               Event.fireEvent(Launcher.getBlueprint(), new MouseEvent(MouseEvent.MOUSE_CLICKED, mouseEvent.getSceneX(),
+                       mouseEvent.getSceneY(), 0, 0, MouseButton.PRIMARY, 1, true, true, true, true,
+                       true, true, true, true, true, true, null));
 
            }
         };
@@ -54,8 +75,8 @@ public class LineTool extends Line {
     private void addDragEventHandler()
     {
         EventHandler<MouseEvent> mouseDragged = mouseEvent -> {
-            if(firstClick) {
-                currLine.updateLine(mouseEvent.getX(), mouseEvent.getY());
+            if(currLine != null) {
+                currLine.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
             }
         };
         Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_DRAGGED, mouseDragged);
@@ -68,9 +89,7 @@ public class LineTool extends Line {
         EventHandler<KeyEvent> escapePressed = keyEvent -> {
             if(keyEvent.getCode() == KeyCode.ESCAPE)
             {
-                DimensionTool.removeTempDimension();
-                currLine.remove();
-                removeEventHandlers();
+                delete();
             }
         };
         Launcher.getStackPane().addEventHandler(KeyEvent.KEY_PRESSED, escapePressed);
@@ -79,16 +98,15 @@ public class LineTool extends Line {
 
     private void addMouseFollowEventHandler()
     {
-        EventHandler<MouseEvent> mouseMoved = mouseEvent -> {
+        followEvent = mouseEvent -> {
             if(currLine != null && mouseEvent.getX() > 1 && mouseEvent.getY() > 1) {
-                currLine.updateLine(mouseEvent.getX(), mouseEvent.getY());
+                currLine.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
                 DimensionTool.updateDimension(currLine.getStartX(), currLine.getStartY(), currLine.getEndX(), currLine.getEndY());
-                System.out.println(mouseEvent.getX());
-                System.out.println(mouseEvent.getY());
+
             }
         };
-        Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_MOVED, mouseMoved);
-        followEvent = mouseMoved;
+        Launcher.getStackPane().addEventHandler(MouseEvent.MOUSE_MOVED, followEvent);
+
     }
 
     private void removeEventHandlers()
@@ -100,4 +118,26 @@ public class LineTool extends Line {
         stackPane.removeEventHandler(KeyEvent.KEY_PRESSED, escapeEvent);
     }
 
+    @Override
+    public void addFollowEvent() {
+        addMouseFollowEventHandler();
+    }
+
+    @Override
+    public void removeFollowEvent() {
+        Launcher.getStackPane().removeEventHandler(MouseEvent.MOUSE_MOVED, followEvent);
+    }
+
+    @Override
+    public void setAtEdge(boolean x) {
+        atEdge = x;
+    }
+
+    @Override
+    public void delete() {
+        DimensionTool.removeTempDimension();
+        currLine.remove();
+        removeEventHandlers();
+        Launcher.getBlueprint().setCurrTool(null);
+    }
 }
