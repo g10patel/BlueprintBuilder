@@ -1,16 +1,9 @@
 package Model.Shapes;
 
 import Launcher.Launcher;
-import Model.Blueprint.Blueprint;
 import Model.Tool.LineTool;
-import Model.Tool.Tool;
-import Model.ToolBar;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-
 
 
 public class LineShape extends Line implements Shape {
@@ -33,7 +26,6 @@ public class LineShape extends Line implements Shape {
         line.setStartY(y1);
         line.setEndX(x2);
         line.setEndY(y2);
-        //updateEdgeDetection();
     }
 
     public void addToBlueprint()
