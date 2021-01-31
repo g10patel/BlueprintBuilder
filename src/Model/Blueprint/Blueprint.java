@@ -3,6 +3,7 @@ package Model.Blueprint;
 import Launcher.Launcher;
 import Model.Blueprint.Grid.Grid;
 import Model.Layer;
+import Model.Shapes.Shape;
 import Model.Tool.Tool;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
@@ -23,6 +24,7 @@ public class Blueprint extends Pane {
     private Scene scene;
     private static Node currShape;
     private Grid grid;
+    private Shape shapeHoveringOver;
 
     public Tool getCurrTool() {
         return currTool;
@@ -38,11 +40,32 @@ public class Blueprint extends Pane {
         initialize();
     }
 
+
     public Blueprint(Scene x)
     {
         scene = x;
         initialize();
     }
+
+    private void initialize()
+    {
+        setScale(1.0);
+        grid = new Grid();
+        this.setStyle("-fx-background-color: #1f242a");
+        setCursor("resources/whiteCursor.png");
+        addGridScrollEventHandler();
+        addLayer();
+    }
+
+    public void setShapeHoveringOver(Shape x)
+    {
+        shapeHoveringOver = x;
+    }
+    public Shape getShapeHoveringOver()
+    {
+        return shapeHoveringOver;
+    }
+
 
     public static Rectangle2D getBounds()
     {
@@ -72,20 +95,10 @@ public class Blueprint extends Pane {
     private void setCurrLayer(Layer layer) {
         currLayer = layer;
     }
+
     public Layer getCurrLayer()
     {
         return currLayer;
-    }
-
-
-    private void initialize()
-    {
-        setScale(1.0);
-        grid = new Grid();
-        this.setStyle("-fx-background-color: #1f242a");
-        setCursor("resources/whiteCursor.png");
-        addGridScrollEventHandler();
-        addLayer();
     }
 
 

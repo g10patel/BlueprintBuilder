@@ -1,10 +1,7 @@
 package Model;
 
 import Model.Blueprint.Blueprint;
-import Model.Tool.BezierTool;
-import Model.Tool.CurveTool;
-import Model.Tool.LineTool;
-import Model.Tool.Tool;
+import Model.Tool.*;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -46,6 +43,12 @@ public class ToolBar extends GridPane {
                 currTool = new CurveTool();});
         x.add(curve, 0,1,1,1);
         Button scissor = Helper.pathToButton("resources/scissor.png");
+        scissor.setOnAction(actionEvent -> {
+            if(currTool != null) {
+                currTool.delete();
+            }
+            currTool = new ScissorTool();
+        });
         x.add(scissor,0,2,1,1);
         Button bezier = Helper.pathToButton("resources/bezier.png");
         bezier.setOnAction(actionEvent -> {

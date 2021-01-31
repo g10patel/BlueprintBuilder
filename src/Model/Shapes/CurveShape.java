@@ -4,6 +4,7 @@ package Model.Shapes;
 import Launcher.Launcher;
 import Model.Blueprint.Blueprint;
 import Model.Tool.CurveTool;
+import Model.Tool.ScissorTool;
 import Model.Tool.Tool;
 import Model.ToolBar;
 import javafx.event.EventHandler;
@@ -27,13 +28,32 @@ public class CurveShape extends QuadCurve implements Shape{
         this.setEndY(y2);
         this.setFill(Color.TRANSPARENT);
         this.setStroke(Color.WHITE);
+        this.setStrokeWidth(.5);
 
         curve = this;
         Launcher.getBlueprint().addShape(curve);
         edge = new Edge(x1, y1);
+        addEventHandlers();
     }
 
 
+    private void addEventHandlers()
+    {
+
+        this.setOnMouseEntered(mouseEvent -> {
+            if(ToolBar.getCurrTool() instanceof ScissorTool) {
+                Launcher.getBlueprint().setShapeHoveringOver((Shape) curve);
+                curve.setStrokeWidth(.3);
+            }
+        });
+
+        this.setOnMouseExited(mouseEvent ->
+        {
+            curve.setStrokeWidth(.5);
+            Launcher.getBlueprint().setShapeHoveringOver(null);
+        });
+
+    }
 
     public void updateShape(double x1, double y1, double c1, double c2, double x2, double y2)
     {

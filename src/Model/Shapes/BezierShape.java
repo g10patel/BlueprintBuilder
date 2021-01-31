@@ -3,8 +3,14 @@ package Model.Shapes;
 import Launcher.Launcher;
 import Model.Blueprint.Blueprint;
 import Model.Tool.BezierTool;
+import Model.Tool.ScissorTool;
+import Model.ToolBar;
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
+
+
 
 public class BezierShape extends CubicCurve implements Shape{
 
@@ -29,7 +35,27 @@ public class BezierShape extends CubicCurve implements Shape{
         Blueprint blueprint = Launcher.getBlueprint();
         blueprint.addShape(bezier);
         edge = new Edge(x1, y1);
+        addEventHandlers();
     }
+
+    private void addEventHandlers()
+    {
+
+        this.setOnMouseEntered(mouseEvent -> {
+            if(ToolBar.getCurrTool() instanceof ScissorTool) {
+                Launcher.getBlueprint().setShapeHoveringOver((Shape) bezier);
+                bezier.setStrokeWidth(.3);
+            }
+        });
+
+        this.setOnMouseExited(mouseEvent ->
+        {
+            bezier.setStrokeWidth(.5);
+            Launcher.getBlueprint().setShapeHoveringOver(null);
+        });
+
+    }
+
 
 
     public void updateShape(double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2)

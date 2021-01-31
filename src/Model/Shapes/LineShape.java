@@ -2,6 +2,8 @@ package Model.Shapes;
 
 import Launcher.Launcher;
 import Model.Tool.LineTool;
+import Model.Tool.ScissorTool;
+import Model.ToolBar;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
@@ -19,7 +21,26 @@ public class LineShape extends Line implements Shape {
         line.setStroke(Color.WHITE);
 
         edge = new Edge(x1, y1);
+        addEventHandlers();
     }
+
+    //Line needs more width
+    private void addEventHandlers()
+    {
+        this.setOnMouseEntered(mouseEvent -> {
+            if(ToolBar.getCurrTool() instanceof ScissorTool) {
+                Launcher.getBlueprint().setShapeHoveringOver((Shape) line);
+                line.setStrokeWidth(.3);
+            }
+        });
+
+        this.setOnMouseExited(mouseEvent ->
+        {
+            line.setStrokeWidth(.5);
+            Launcher.getBlueprint().setShapeHoveringOver(null);
+        });
+    }
+
     public void updateLine(double x1, double y1, double x2, double y2)
     {
         line.setStartX(x1);
