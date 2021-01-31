@@ -20,6 +20,7 @@ public class CurveTool implements Tool{
     private EventHandler<KeyEvent> escapeEvent;
     private static CurveShape firstShape;
     private boolean atEdge;
+    private CurveShape prevShape;
     public CurveTool()
     {
         initialize();
@@ -90,8 +91,15 @@ public class CurveTool implements Tool{
                     if (firstShape == null) {
                         firstShape = currShape;
                     }
+                    if(!atEdge) {
+                        DimensionTool.showDimensions(currShape.getStartX(), currShape.getStartY(), currShape.getEndX(), currShape.getEndY());
+                    }
+                    else
+                    {
+                        currShape.setStartX(prevShape.getEndX());
+                        currShape.setStartY(prevShape.getEndY());
+                    }
                     clickIndex = 1;
-                    DimensionTool.showDimensions(currShape.getStartX(), currShape.getStartY(), currShape.getEndX(), currShape.getEndY());
                 }
                 case (1) -> {
                     currShape.setControl(mouseEvent.getX(), mouseEvent.getY());
@@ -102,8 +110,8 @@ public class CurveTool implements Tool{
                     {
                         currShape.setEndCoord(mouseEvent.getX(), mouseEvent.getY());
                     }
+                    prevShape = currShape;
                     clickIndex = 0;
-                    currShape.addBorderEdge();
                     DimensionTool.removeTempDimension();
                     Event.fireEvent(Launcher.getBlueprint(), new MouseEvent(MouseEvent.MOUSE_CLICKED, mouseEvent.getSceneX(),
                             mouseEvent.getSceneY(), 0, 0, MouseButton.PRIMARY, 1, true, true, true, true,

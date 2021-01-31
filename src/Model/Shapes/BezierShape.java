@@ -3,20 +3,14 @@ package Model.Shapes;
 import Launcher.Launcher;
 import Model.Blueprint.Blueprint;
 import Model.Tool.BezierTool;
-import Model.Tool.CurveTool;
-import Model.Tool.Tool;
-import Model.ToolBar;
-import javafx.event.EventHandler;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.CubicCurve;
 
 public class BezierShape extends CubicCurve implements Shape{
 
-    private CubicCurve bezier;
-    private Blueprint blueprint;
-    private Circle c1;
+    private final CubicCurve bezier;
+    private final Edge edge;
+
     public BezierShape(double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2)
     {
         this.setStartX(x1);
@@ -32,60 +26,11 @@ public class BezierShape extends CubicCurve implements Shape{
         this.setStrokeWidth(.5);
 
         bezier = this;
-        blueprint = Launcher.getBlueprint();
+        Blueprint blueprint = Launcher.getBlueprint();
         blueprint.addShape(bezier);
-        addEdgeDetection();
+        edge = new Edge(x1, y1);
     }
 
-    private void addEdgeDetection() {
-        double scale = Blueprint.getScale();
-
-        c1 = new Circle(15*scale);
-
-
-        c1.setCenterX(bezier.getStartX());
-        c1.setCenterY(bezier.getStartY());
-        c1.setFill(Color.TRANSPARENT);
-        c1.setStroke(Color.TRANSPARENT);
-
-        blueprint.addShape(c1);
-
-        addEdgeDetectionEventHandlers();
-    }
-
-    //TODO
-    //Put edge event handlers in its own class
-    private void addEdgeDetectionEventHandlers() {
-
-        EventHandler<MouseEvent> enterEdge = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                Launcher.getBlueprint().requestFocus();
-                Tool tool = ToolBar.getCurrTool();
-                tool.removeFollowEvent();
-                Shape shape = (Shape) Launcher.getBlueprint().getCurrShape();
-                Circle source = (Circle)mouseEvent.getSource();
-                source.setStroke(Color.GREEN);
-                shape.setEndCoord(source.getCenterX(), source.getCenterY());
-                tool.setAtEdge(true);
-
-
-            }
-        };
-        EventHandler<MouseEvent> exitEdge = new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent mouseEvent) {
-                Launcher.getBlueprint().requestFocus();
-                Tool tool = ToolBar.getCurrTool();
-                tool.addFollowEvent();
-                ((Circle)mouseEvent.getSource()).setStroke(Color.TRANSPARENT);
-                tool.setAtEdge(false);
-
-            }
-        };
-        c1.setOnMouseEntered(enterEdge);
-        c1.setOnMouseExited(exitEdge);
-    }
 
     public void updateShape(double x1, double y1, double cx1, double cy1, double cx2, double cy2, double x2, double y2)
     {
@@ -123,7 +68,7 @@ public class BezierShape extends CubicCurve implements Shape{
         Launcher.getBlueprint().removeShape(bezier);
         if(this == BezierTool.getFirstShape())
         {
-            Launcher.getBlueprint().removeShape(c1);
+            edge.removeEdge();
         }
     }
 }

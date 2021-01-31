@@ -21,6 +21,7 @@ public class BezierTool implements Tool{
     private EventHandler<MouseEvent> clickEvent;
     private EventHandler<MouseEvent> dragEvent;
     private EventHandler<KeyEvent> escapeEvent;
+    private BezierShape prevShape;
     public BezierTool()
     {
         initialize();
@@ -82,7 +83,14 @@ public class BezierTool implements Tool{
                         firstShape = currShape;
                     }
                     clickIndex += 1;
-                    DimensionTool.showDimensions(x, y, x, y);
+                    if(!atEdge) {
+                        DimensionTool.showDimensions(x, y, x, y);
+                    }
+                    else
+                    {
+                        currShape.setStartX(prevShape.getEndX());
+                        currShape.setStartY(prevShape.getEndY());
+                    }
                 }
                 case (1) -> {
                     currShape.setControl1(x, y);
@@ -98,6 +106,7 @@ public class BezierTool implements Tool{
                         currShape.setEndCoord(x, y);
                     }
                     clickIndex = 0;
+                    prevShape = currShape;
                     DimensionTool.removeTempDimension();
                     Event.fireEvent(Launcher.getBlueprint(), new MouseEvent(MouseEvent.MOUSE_CLICKED, mouseEvent.getSceneX(),
                             mouseEvent.getSceneY(), 0, 0, MouseButton.PRIMARY, 1, true, true, true, true,
